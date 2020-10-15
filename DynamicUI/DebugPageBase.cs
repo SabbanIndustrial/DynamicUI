@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using DynamicUI.Bindings;
+
 using Xamarin.Forms;
 using Xamarin.Forms.Markup;
 
@@ -14,6 +16,8 @@ namespace DynamicUI
         public static string MonoFont { get; set; } = Font.Default.FontFamily;//"SegoeUIMono.ttf#Segoe UI Mono";
 
         public ColumnDefinition ButtonsColumn { get; set; }
+        public List<DynamicBindingBase> BindingBases { get; set; } = new List<DynamicBindingBase>();
+
 
         public DebugPageBase() : base()
         {
@@ -64,6 +68,62 @@ namespace DynamicUI
             Content = AbsoluteLayout;
         }
 
+        public void AddButton(string name, Action<ButtonDynamicBinding> action)
+        {
+
+            ButtonDynamicBinding binding = new ButtonDynamicBinding()
+            {
+                Label = name,
+            };
+            Binding bi = new Binding(nameof(ButtonDynamicBinding.Label))
+            {
+                Source = binding
+            };
+            BindingBases.Add(binding);
+            Button b = new Button
+            {
+                //BackgroundColor = Colors.White,
+                //BorderColor = Colors.Blue,
+                BorderWidth = 1,
+                //TextColor = Colors.Gray
+            };
+            b.SetBinding(Button.TextProperty, bi);
+            //if (item.Name.Length == 1)
+            //{
+            //    b.FontSize = 24;
+            //    b.FontFamily = Fonts.FabricIcons;
+            //    b.CornerRadius = 16;
+            //}
+            b.Clicked += (sender, e) =>
+            {
+                try
+                {
+                    WriteString($"Выполнение: {b.Text}");
+                    action?.Invoke(binding);
+                }
+                catch (Exception ex)
+                {
+                    WriteString($" '{name}' thrown an exception: ", ex);
+                }
+            };
+            ButtonsLayout.Children.Add(b);
+        }
+
+        public bool IsExpanded { get; set; } = true;
+
+        public void ToggleExpand()
+        {
+            if (IsExpanded)
+            {
+                ButtonsColumn.Width = new GridLength(0.4, GridUnitType.Star);
+            }
+            else
+            {
+                ButtonsColumn.Width = new GridLength(1, GridUnitType.Star);
+            }
+            IsExpanded = !IsExpanded;
+
+        }
         protected override void OnAppearing()
         {
             base.OnAppearing();
@@ -71,19 +131,17 @@ namespace DynamicUI
             {
                 return;
             }
-            bool flag = true;
-            AddAction($"Collapse/Expand", () =>
+            AddButton($"Collapse", (b) =>
             {
-                if (flag)
+                ToggleExpand();
+                if (IsExpanded)
                 {
-                    ButtonsColumn.Width = new GridLength(0.4, GridUnitType.Star);
+                    b.Label = $"Collapse";
                 }
                 else
                 {
-                    ButtonsColumn.Width = new GridLength(1, GridUnitType.Star);
+                    b.Label = $"Expand";
                 }
-                flag = !flag;
-
             });
             //AddSwitch("Collapse", (b) =>
             //{
@@ -377,7 +435,7 @@ namespace DynamicUI
                 InfoLayout.Children.Add(view);
             });
         }
-       
+
         public void WriteString(string info)
         {
             Device.BeginInvokeOnMainThread(() =>

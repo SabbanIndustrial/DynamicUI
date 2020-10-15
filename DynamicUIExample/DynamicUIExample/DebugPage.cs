@@ -16,7 +16,10 @@ namespace DynamicUIExample
             {
                 WriteString($"TEST");
             });
-
+            AddButton("dcp", (b) =>
+            {
+                b.Label = $"{b.Label}{b.Label}";
+            });
         }
 
     }
