@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Xamarin.Forms;
+using Xamarin.Forms.Markup;
 
 namespace DynamicUI
 {
@@ -10,7 +11,7 @@ namespace DynamicUI
     {
         protected bool IsInitialized { get; set; } = false;
 
-        public const string SegoeUIMono = "SegoeUIMono.ttf#Segoe UI Mono";
+        public static string MonoFont { get; set; } = Font.Default.FontFamily;//"SegoeUIMono.ttf#Segoe UI Mono";
 
         public ColumnDefinition ButtonsColumn { get; set; }
 
@@ -35,7 +36,7 @@ namespace DynamicUI
 
             grid.RowDefinitions.Add(new RowDefinition()
             {
-                Height = new GridLength(1, GridUnitType.Auto),
+                Height = new GridLength(1, GridUnitType.Star),
             });
             //grid.RowDefinitions.Add(new RowDefinition()
             //{
@@ -49,7 +50,8 @@ namespace DynamicUI
             //ButtonsScroll.Orientation = ScrollOrientation.Horizontal;
             ButtonsScroll.Content = ButtonsLayout;
 
-
+            ButtonsScroll.VerticalOptions = LayoutOptions.FillAndExpand;
+            grid.VerticalOptions = LayoutOptions.FillAndExpand;
             grid.Children.Add(ButtonsScroll, 1, 0);
             grid.Children.Add(AutoScroll, 0, 0);
 
@@ -154,7 +156,7 @@ namespace DynamicUI
                         {
                             Margin = 10,
                             Text = $"{item.Name}",
-                            FontFamily = SegoeUIMono,
+                            FontFamily = MonoFont,
                         };
                         ButtonsLayout.Children.Add(temp);
                         break;
@@ -174,7 +176,7 @@ namespace DynamicUI
                                 VerticalOptions = LayoutOptions.CenterAndExpand,
                                 Margin = 5,
                                 Text = $"{item.Name}",
-                                FontFamily = SegoeUIMono,
+                                FontFamily = MonoFont,
                             };
                             //if (item.Name.Length == 1)
                             //{
@@ -231,7 +233,7 @@ namespace DynamicUI
                             {
                                 Margin = new Thickness(5, 5, 5, 0),
                                 Text = $"{item.Name.TrimStart('-')}",
-                                FontFamily = SegoeUIMono,
+                                FontFamily = MonoFont,
                             };
                             stackLayout2.Children.Add(temp3);
                             //ButtonsLayout.Children.Add(temp3);
@@ -240,7 +242,7 @@ namespace DynamicUI
                         {
                             Margin = new Thickness(5, 0, 5, 5),
                             Title = item.Name.TrimStart('-'),
-                            FontFamily = SegoeUIMono,
+                            FontFamily = MonoFont,
                         };
                         stackLayout2.Children.Add(picker);
 
@@ -353,7 +355,7 @@ namespace DynamicUI
         {
             Button b = new Button();
             b.Text = name;
-            b.FontFamily = SegoeUIMono;
+            b.FontFamily = MonoFont;
             b.Clicked += (sender, e) =>
             {
                 try
@@ -373,24 +375,9 @@ namespace DynamicUI
             Device.BeginInvokeOnMainThread(() =>
             {
                 InfoLayout.Children.Add(view);
-
             });
         }
-        //public void WriteString(byte[] bytes)
-        //{
-        //    Device.BeginInvokeOnMainThread(() =>
-        //    {
-        //        Label temp = new Label()
-        //        {
-        //            Text = $"HEX: \n{bytes.ToHex()}",
-
-        //        };
-
-        //        InfoLayout.Children.Add(temp);
-        //        AutoScroll.ScrollToAsync(0, AutoScroll.ContentSize.Height, true);
-
-        //    });
-        //}
+       
         public void WriteString(string info)
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -398,13 +385,12 @@ namespace DynamicUI
                 Label temp = new Label()
                 {
                     Text = $"{info}",
-                    FontFamily = SegoeUIMono,
+                    FontFamily = MonoFont,
 
                 };
 
                 InfoLayout.Children.Add(temp);
                 AutoScroll.ScrollToAsync(0, AutoScroll.ContentSize.Height, true);
-
             });
         }
         public void WriteString(string info, Color color)
@@ -415,7 +401,7 @@ namespace DynamicUI
                 {
                     Text = $"{info}",
                     TextColor = color,
-                    FontFamily = SegoeUIMono,
+                    FontFamily = MonoFont,
 
                 };
 
@@ -443,7 +429,7 @@ namespace DynamicUI
                 {
                     Text = info,
                     TextColor = Color.Red,
-                    FontFamily = SegoeUIMono,
+                    FontFamily = MonoFont,
                 };
                 Label temp = new Label()
                 {
@@ -451,7 +437,7 @@ namespace DynamicUI
                     TextColor = Color.Red,
                     IsVisible = false,
 
-                    FontFamily = SegoeUIMono,
+                    FontFamily = MonoFont,
                 };
                 b.Clicked += (object sender, EventArgs e) =>
                 {
@@ -501,7 +487,7 @@ namespace DynamicUI
                 {
                     Text = $"{info}\n{ex}",
                     TextColor = Color.Red,
-                    FontFamily = SegoeUIMono,
+                    FontFamily = MonoFont,
                 };
                 InfoLayout.Children.Add(temp);
             });

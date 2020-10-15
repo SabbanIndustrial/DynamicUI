@@ -11,7 +11,7 @@ namespace DynamicUIExample
         {
             InitializeComponent();
 
-            MainPage = new MainPage();
+            MainPage = new DebugPage();
         }
 
         protected override void OnStart()

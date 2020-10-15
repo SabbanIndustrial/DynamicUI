@@ -7,5 +7,17 @@ namespace DynamicUIExample
 {
     public class DebugPage : DebugPageBase
     {
+
+        public DebugPage() : base()
+        {
+
+
+            AddAction("TEST", () =>
+            {
+                WriteString($"TEST");
+            });
+
+        }
+
     }
 }
