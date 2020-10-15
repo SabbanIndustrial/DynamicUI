@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using Xamarin.Forms;
 
 namespace DynamicUI
@@ -8,12 +10,12 @@ namespace DynamicUI
     {
         protected bool IsInitialized { get; set; } = false;
 
-        public Image Logo { get; set; }
+        public const string SegoeUIMono = "SegoeUIMono.ttf#Segoe UI Mono";
 
-        public DebugPageViewModel Model { get; set; } = new DebugPageViewModel();
+        public ColumnDefinition ButtonsColumn { get; set; }
+
         public DebugPageBase() : base()
         {
-            BindingContext = Model;
             BackgroundColor = Color.White;
             Title = GetType().Name;
 
@@ -22,48 +24,41 @@ namespace DynamicUI
 
             grid.ColumnDefinitions.Add(new ColumnDefinition()
             {
-                Width = new GridLength(1, GridUnitType.Star),
+                Width = new GridLength(3, GridUnitType.Star),
             });
 
-            //grid.ColumnDefinitions.Add(new ColumnDefinition()
-            //{
-            //    Width = new GridLength(2, GridUnitType.Star),
-            //});
+            ButtonsColumn = new ColumnDefinition()
+            {
+                Width = new GridLength(1, GridUnitType.Star),
+            };
+            grid.ColumnDefinitions.Add(ButtonsColumn);
 
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Height = new GridLength(1, GridUnitType.Auto),
             });
-            grid.RowDefinitions.Add(new RowDefinition()
-            {
-                //Height = new GridLength(1, GridUnitType.Star),
-            });
+            //grid.RowDefinitions.Add(new RowDefinition()
+            //{
+            //    //Height = new GridLength(1, GridUnitType.Star),
+            //});
 
 
             AutoScroll.Content = InfoLayout;
-            ButtonsLayout.Orientation = StackOrientation.Horizontal;
+            //ButtonsLayout.Orientation = StackOrientation.Horizontal;
 
-            ButtonsScroll.Orientation = ScrollOrientation.Horizontal;
+            //ButtonsScroll.Orientation = ScrollOrientation.Horizontal;
             ButtonsScroll.Content = ButtonsLayout;
 
 
-            grid.Children.Add(ButtonsScroll, 0, 0);
-            grid.Children.Add(AutoScroll, 0, 1);
+            grid.Children.Add(ButtonsScroll, 1, 0);
+            grid.Children.Add(AutoScroll, 0, 0);
 
 
-            Logo = new Image()
-            {
-                Source = "samyy76",
-                Opacity = 0.3,
-
-            };
-
-
-            AbsoluteLayout.Children.Add(Logo);
+            // AbsoluteLayout.Children.Add(Logo);
             AbsoluteLayout.Children.Add(grid, new Rectangle(1, 1, 1, 1), AbsoluteLayoutFlags.All);
 
-            AbsoluteLayout.SetLayoutBounds(Logo, new Rectangle(0.5, 0.5, 1, 1));
-            AbsoluteLayout.SetLayoutFlags(Logo, AbsoluteLayoutFlags.All);
+            //AbsoluteLayout.SetLayoutBounds(Logo, new Rectangle(0.5, 0.5, 1, 1));
+            //AbsoluteLayout.SetLayoutFlags(Logo, AbsoluteLayoutFlags.All);
             Content = AbsoluteLayout;
         }
 
@@ -74,13 +69,50 @@ namespace DynamicUI
             {
                 return;
             }
-            AddAction(FabricFontAll.ClearFormatting, () =>
+            bool flag = true;
+            AddAction($"Collapse/Expand", () =>
+            {
+                if (flag)
+                {
+                    ButtonsColumn.Width = new GridLength(0.4, GridUnitType.Star);
+                }
+                else
+                {
+                    ButtonsColumn.Width = new GridLength(1, GridUnitType.Star);
+                }
+                flag = !flag;
+
+            });
+            //AddSwitch("Collapse", (b) =>
+            //{
+            //    if (b)
+            //    {
+            //        ButtonsColumn.Width = new GridLength(0.4, GridUnitType.Star);
+            //    }
+            //    else
+            //    {
+            //        ButtonsColumn.Width = new GridLength(1, GridUnitType.Star);
+            //    }
+            //});
+            AddAction($"SaveLog", () =>
+            {
+                string toSave = "";
+                string filename = $"log{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                foreach (var item in InfoLayout.Children)
+                {
+                    if (item is Label l)
+                    {
+                        toSave += $"{l.Text}\n";
+                    }
+                }
+                //FileHelper.EnsureWritePersonal(filename, toSave);
+                WriteString($"Saved log to file: {filename}");
+            });
+            AddAction($"Clear", () =>
             {
                 InfoLayout.Children.Clear();
                 WriteString($"Экран очищен");
             });
-
-
             foreach (var item in Objects)
             {
                 switch (item.UIType)
@@ -90,23 +122,23 @@ namespace DynamicUI
                         Button b = new Button
                         {
                             Text = item.Name,
-                            BackgroundColor = Colors.White,
-                            BorderColor = Colors.Blue,
+                            //BackgroundColor = Colors.White,
+                            //BorderColor = Colors.Blue,
                             BorderWidth = 1,
-                            TextColor = Colors.Gray
+                            //TextColor = Colors.Gray
                         };
-                        if (item.Name.Length == 1)
-                        {
-                            b.FontSize = 24;
-                            b.FontFamily = Fonts.FabricIcons;
-                            b.CornerRadius = 16;
-                        }
+                        //if (item.Name.Length == 1)
+                        //{
+                        //    b.FontSize = 24;
+                        //    b.FontFamily = Fonts.FabricIcons;
+                        //    b.CornerRadius = 16;
+                        //}
                         b.Clicked += (sender, e) =>
                         {
                             try
                             {
-                            //WriteString($"Выполнение: {item.Name}");
-                            item.Action?.Invoke();
+                                WriteString($"Выполнение: {item.Name}");
+                                item.Action?.Invoke();
                             }
                             catch (Exception ex)
                             {
@@ -122,6 +154,7 @@ namespace DynamicUI
                         {
                             Margin = 10,
                             Text = $"{item.Name}",
+                            FontFamily = SegoeUIMono,
                         };
                         ButtonsLayout.Children.Add(temp);
                         break;
@@ -131,7 +164,7 @@ namespace DynamicUI
                     case UIDynType.Switch:
                         StackLayout stackLayout = new StackLayout()
                         {
-                            Orientation = StackOrientation.Horizontal
+                            Orientation = StackOrientation.Vertical
                         };
 
                         if (!string.IsNullOrWhiteSpace(item.Name))
@@ -141,12 +174,13 @@ namespace DynamicUI
                                 VerticalOptions = LayoutOptions.CenterAndExpand,
                                 Margin = 5,
                                 Text = $"{item.Name}",
+                                FontFamily = SegoeUIMono,
                             };
-                            if (item.Name.Length == 1)
-                            {
-                                temp2.FontSize = 24;
-                                temp2.FontFamily = Fonts.FabricIcons;
-                            }
+                            //if (item.Name.Length == 1)
+                            //{
+                            //    temp2.FontSize = 24;
+                            //    temp2.FontFamily = Fonts.FabricIcons;
+                            //}
                             stackLayout.Children.Add(temp2);
 
                             //ButtonsLayout.Children.Add(temp2);
@@ -154,7 +188,7 @@ namespace DynamicUI
 
 
                         Frame f = new Frame();
-                        f.BorderColor = Colors.Blue;
+                        //f.BorderColor = Colors.Blue;
                         f.CornerRadius = 16;
                         f.HasShadow = false;
                         f.Padding = new Thickness(0);
@@ -179,7 +213,7 @@ namespace DynamicUI
                     case UIDynType.Picker:
                         StackLayout stackLayout2 = new StackLayout()
                         {
-                            Orientation = StackOrientation.Horizontal
+                            Orientation = StackOrientation.Vertical
                         };
 
 
@@ -197,6 +231,7 @@ namespace DynamicUI
                             {
                                 Margin = new Thickness(5, 5, 5, 0),
                                 Text = $"{item.Name.TrimStart('-')}",
+                                FontFamily = SegoeUIMono,
                             };
                             stackLayout2.Children.Add(temp3);
                             //ButtonsLayout.Children.Add(temp3);
@@ -205,6 +240,7 @@ namespace DynamicUI
                         {
                             Margin = new Thickness(5, 0, 5, 5),
                             Title = item.Name.TrimStart('-'),
+                            FontFamily = SegoeUIMono,
                         };
                         stackLayout2.Children.Add(picker);
 
@@ -230,46 +266,6 @@ namespace DynamicUI
                 }
 
             }
-
-
-            //foreach (var item in Actions)
-            //{
-            //    string name = item.Item1;
-            //    Action action = item.Item2;
-
-            //    if (action == null)
-            //    {
-            //        Label temp = new Label()
-            //        {
-            //            Margin = 10,
-            //            Text = $"{name}",
-            //        };
-            //        ButtonsLayout.Children.Add(temp);
-            //        continue;
-            //    }
-
-            //    if (name.StartsWith("-"))
-            //    {
-            //        continue;
-            //    }
-            //    Button b = new Button
-            //    {
-            //        Text = name,
-            //    };
-            //    b.Clicked += (object sender, EventArgs e) =>
-            //    {
-            //        try
-            //        {
-            //            WriteString($"Executing {name}");
-            //            action.Invoke();
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            WriteString($"Action '{name}' thrown an exception: ", ex);
-            //        }
-            //    };
-            //    ButtonsLayout.Children.Add(b);
-            //}
             IsInitialized = true;
         }
 
@@ -342,35 +338,9 @@ namespace DynamicUI
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-
-
                 if (Switches.TryGetValue(flag, out Switch swtch))
                 {
-                //var swtch = ButtonsLayout.Children.FirstOrDefaultFromMany(p =>
-                //{
-                //    if (p is IViewContainer<View> vc)
-                //    {
-                //        return vc.Children;
-                //    }
-                //    else
-                //    {
-                //        return Array.Empty<View>();
-                //    }
-                //},
-                //(v) =>
-                //{
-                //    if (v is Switch s)
-                //    {
-                //        if (s.AutomationId == flag)
-                //        {
-                //            return true;
-                //        }
-                //    }
-                //    return false;
-                //});
-
-                swtch.IsToggled = value;
-
+                    swtch.IsToggled = value;
                 }
             });
         }
@@ -383,6 +353,7 @@ namespace DynamicUI
         {
             Button b = new Button();
             b.Text = name;
+            b.FontFamily = SegoeUIMono;
             b.Clicked += (sender, e) =>
             {
                 try
@@ -397,7 +368,6 @@ namespace DynamicUI
             };
             ButtonsLayout.Children.Add(b);
         }
-
         public void AddView(View view)
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -406,21 +376,21 @@ namespace DynamicUI
 
             });
         }
-        public void WriteString(byte[] bytes)
-        {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                Label temp = new Label()
-                {
-                    Text = $"HEX: \n{bytes.ToHex()}",
+        //public void WriteString(byte[] bytes)
+        //{
+        //    Device.BeginInvokeOnMainThread(() =>
+        //    {
+        //        Label temp = new Label()
+        //        {
+        //            Text = $"HEX: \n{bytes.ToHex()}",
 
-                };
+        //        };
 
-                InfoLayout.Children.Add(temp);
-                AutoScroll.ScrollToAsync(0, AutoScroll.ContentSize.Height, true);
+        //        InfoLayout.Children.Add(temp);
+        //        AutoScroll.ScrollToAsync(0, AutoScroll.ContentSize.Height, true);
 
-            });
-        }
+        //    });
+        //}
         public void WriteString(string info)
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -428,6 +398,7 @@ namespace DynamicUI
                 Label temp = new Label()
                 {
                     Text = $"{info}",
+                    FontFamily = SegoeUIMono,
 
                 };
 
@@ -443,7 +414,9 @@ namespace DynamicUI
                 Label temp = new Label()
                 {
                     Text = $"{info}",
-                    TextColor = color
+                    TextColor = color,
+                    FontFamily = SegoeUIMono,
+
                 };
 
                 InfoLayout.Children.Add(temp);
@@ -470,12 +443,15 @@ namespace DynamicUI
                 {
                     Text = info,
                     TextColor = Color.Red,
+                    FontFamily = SegoeUIMono,
                 };
                 Label temp = new Label()
                 {
                     Text = $"{info}\n{ex}",
                     TextColor = Color.Red,
                     IsVisible = false,
+
+                    FontFamily = SegoeUIMono,
                 };
                 b.Clicked += (object sender, EventArgs e) =>
                 {
@@ -488,35 +464,35 @@ namespace DynamicUI
         }
 
 
-        public void Emit(LogEvent logEvent)
-        {
+        //public void Emit(LogEvent logEvent)
+        //{
 
-            switch (logEvent.Level)
-            {
-                case LogEventLevel.Verbose:
-                    WriteString(logEvent.RenderMessage(), Color.Chocolate);
-                    break;
-                case LogEventLevel.Debug:
-                    WriteString(logEvent.RenderMessage(), Color.Green);
+        //    switch (logEvent.Level)
+        //    {
+        //        case LogEventLevel.Verbose:
+        //            WriteString(logEvent.RenderMessage(), Color.Chocolate);
+        //            break;
+        //        case LogEventLevel.Debug:
+        //            WriteString(logEvent.RenderMessage(), Color.Green);
 
-                    break;
-                case LogEventLevel.Information:
-                    WriteString(logEvent.RenderMessage(), Color.Black);
+        //            break;
+        //        case LogEventLevel.Information:
+        //            WriteString(logEvent.RenderMessage(), Color.Black);
 
-                    break;
-                case LogEventLevel.Warning:
-                    WriteString(logEvent.RenderMessage(), Color.Red);
+        //            break;
+        //        case LogEventLevel.Warning:
+        //            WriteString(logEvent.RenderMessage(), Color.Red);
 
-                    break;
-                case LogEventLevel.Fatal:
-                    WriteString(logEvent.RenderMessage(), Color.Purple);
+        //            break;
+        //        case LogEventLevel.Fatal:
+        //            WriteString(logEvent.RenderMessage(), Color.Purple);
 
-                    break;
-                default:
-                    WriteString(logEvent.RenderMessage());
-                    break;
-            }
-        }
+        //            break;
+        //        default:
+        //            WriteString(logEvent.RenderMessage());
+        //            break;
+        //    }
+        //}
         public void WriteString(string info, Exception ex)
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -525,6 +501,7 @@ namespace DynamicUI
                 {
                     Text = $"{info}\n{ex}",
                     TextColor = Color.Red,
+                    FontFamily = SegoeUIMono,
                 };
                 InfoLayout.Children.Add(temp);
             });
@@ -554,33 +531,5 @@ namespace DynamicUI
             return amount;
         }
         #endregion
-    }
-    public class DebugPageViewModel : INotifyPropertyChanged
-    {
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
-    }
-    public class UIDynamicObject
-    {
-        public string Name { get; set; }
-        public Action Action { get; set; }
-        public Action<bool> SwitchAction { get; set; }
-
-        public View View { get; set; }
-
-        public UIDynType UIType { get; set; }
-
-        public List<string> PickerVariants { get; set; } = new List<string>();
-        public string PickerSelected { get; set; }
-        public Action<string> PickerAction;
-    }
-    public enum UIDynType
-    {
-        Button,
-        Label,
-        View,
-        Switch,
-        Picker,
     }
 }
