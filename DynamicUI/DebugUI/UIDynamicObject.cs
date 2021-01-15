@@ -19,6 +19,7 @@ namespace DynamicUI
         public string PickerSelected { get; set; }
         public Action<string> PickerAction;
     }
+
     public enum UIDynType
     {
         Button,
